@@ -56,17 +56,19 @@ function mapToData (msg) {
   const { author, content } = msg.value
   const key = msg.key
   const type = get(msg, 'value.content.type' ,[]) //map
-  if (type === 'add-community-application') {
+  if (type === 'community-applications-test') {
     const application = get(msg, 'value.content.application')
-    const { name, package, readme } = application
-    if (checkString(name) && checkString(package) && checkString(readme)) {
+    const { name, package, readme, repository, category } = application
+    if (checkString()) {
       return {
         [key]: {
           package,
           readme,
           name,
           author,
-          key
+          key,
+          category,
+          repository
         }
       }
     }
