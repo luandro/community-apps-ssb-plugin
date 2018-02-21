@@ -14,7 +14,7 @@ module.exports = {
     stream: 'source'
   },
   init: function (ssbServer, config) {
-    console.log('*** loading app-installer plugin ***')
+    // console.log('*** loading app-installer plugin ***')
 
     const view = ssbServer._flumeUse('communityApps', flumeView(
       5.0, // version
@@ -23,7 +23,7 @@ module.exports = {
       null, //codec
       initialState()
     ))
-    console.log('init FlumeView', view)
+    // console.log('init FlumeView', view)
 
     return {
       get: view.get,
@@ -43,7 +43,7 @@ function reduceData (acc, newData) {
   // console.log('AC', acc)
   // console.log('new', newData)
   if (!isEmpty(newData)) {
-    console.log(merge(acc, newData))
+    // console.log(merge(acc, newData))
     return merge(acc, newData)
   }
   return acc
