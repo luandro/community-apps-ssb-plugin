@@ -4,11 +4,18 @@ const get = require('lodash/get')
 const merge = require('lodash/merge')
 const isEmpty = require('lodash/isEmpty')
 
-const checkString = a => typeof a === 'string'
+const checkString = (list) => {
+  let result = true
+  list.map(a => {
+  if (!typeof a === 'string') {
+    result === false
+  }
+  return result
+})}
 
 module.exports = {
   name: 'communityApps',
-  version: '1.0.0',
+  version: '1.0.3',
   manifest: {
     get: 'async',
     stream: 'source'
@@ -17,7 +24,7 @@ module.exports = {
     // console.log('*** loading app-installer plugin ***')
 
     const view = ssbServer._flumeUse('communityApps', flumeView(
-      5.0, // version
+      5.1, // version
       reduceData,
       mapToData,
       null, //codec
@@ -58,8 +65,8 @@ function mapToData (msg) {
   const type = get(msg, 'value.content.type' ,[]) //map
   if (type === 'community-applications-test') {
     const application = get(msg, 'value.content.application')
-    const { name, package, readme, repository, category } = application
-    if (checkString()) {
+    const { name, package, readme, repository, category, hash } = application
+    if (checkString([ name, package, readme, repository, category, hash ])) {
       return {
         [key]: {
           package,
@@ -68,7 +75,8 @@ function mapToData (msg) {
           author,
           key,
           category,
-          repository
+          repository,
+          hash
         }
       }
     }
