@@ -4,14 +4,16 @@ const get = require('lodash/get')
 const merge = require('lodash/merge')
 const isEmpty = require('lodash/isEmpty')
 
-const checkString = (list) => {
+const checkType = (type, list) => {
   let result = true
   list.map(a => {
-  if (!typeof a === 'string') {
-    result === false
-  }
+    if (!typeof a === type) {
+      console.log('Oops', a)
+      result === false
+    }
+  })
   return result
-})}
+}
 
 module.exports = {
   name: 'communityApps',
@@ -24,7 +26,7 @@ module.exports = {
     // console.log('*** loading app-installer plugin ***')
 
     const view = ssbServer._flumeUse('communityApps', flumeView(
-      5.1, // version
+      7.0, // version
       reduceData,
       mapToData,
       null, //codec
@@ -63,14 +65,14 @@ function mapToData (msg) {
   const { author, content } = msg.value
   const key = msg.key
   const type = get(msg, 'value.content.type' ,[]) //map
-  if (type === 'community-applications-test') {
+  if (type === 'community-applications-poc') {
     const application = get(msg, 'value.content.application')
-    const { name, package, readme, repository, category, hash } = application
-    if (checkString([ name, package, readme, repository, category, hash ])) {
+    // console.log('application', application)
+    const { name, repository, category, hash, slug } = application
+    if (checkType('string', [ name, repository, hash, slug ]) && Array.isArray(category)) {
       return {
         [key]: {
-          package,
-          readme,
+          slug,
           name,
           author,
           key,
@@ -79,6 +81,10 @@ function mapToData (msg) {
           hash
         }
       }
+    } else {
+      console.log(checkType('string', [ name, repository, hash ]))
+      console.log(Array.isArray(category))
+      console.error('Wrong type')
     }
   }
   return {}
