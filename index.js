@@ -1,95 +1,64 @@
-const flumeView = require('flumeview-reduce')
-const pull = require('pull-stream')
-const get = require('lodash/get')
+const FlumeReduce = require('flumeview-reduce')
+const ref = require('ssb-ref')
 const merge = require('lodash/merge')
-const isEmpty = require('lodash/isEmpty')
 
-const checkType = (type, list) => {
-  let result = true
-  list.map(a => {
-    if (!typeof a === type) {
-      console.log('Oops', a)
-      result === false
+exports.name = 'apphub'
+exports.version = require('./package.json').version
+exports.manifest = {
+  stream: 'source',
+  get: 'async'
+}
+
+exports.init = function (ssb, config) {
+  return ssb._flumeUse('apphub', FlumeReduce(1, reduce, map))
+}
+
+function reduce (result, item) {
+  console.log('RED result', result)
+  console.log('RED item', item)
+  const timestamp = item.value.timestamp
+  const name = item.value.content.application.name
+  if (!result) result = []
+  if (item) {
+    // compare items with same name
+    // get with largest timestamp
+    for (var key in name) {
+      console.log('value', key)
+      // if (result[name] !== name) {
+        // result = merge(result, item)
+      // }
     }
-  })
+    result.push(item)
+  }
   return result
 }
 
-module.exports = {
-  name: 'communityApps',
-  version: '1.0.3',
-  manifest: {
-    get: 'async',
-    stream: 'source'
-  },
-  init: function (ssbServer, config) {
-    // console.log('*** loading app-installer plugin ***')
+function map (msg) {
+  if (msg.value.content && msg.value.content.type === 'open-app-hub-alpha') {
+    // const name = msg.value.content.application.name
+    // const author = msg.value.author
+    // const timestamp = msg.value.timestamp
+    // let values = {}
 
-    const view = ssbServer._flumeUse('communityApps', flumeView(
-      7.0, // version
-      reduceData,
-      mapToData,
-      null, //codec
-      initialState()
-    ))
-    // console.log('init FlumeView', view)
-
-    return {
-      get: view.get,
-      stream: view.stream
-    }
-  }
-}
-
-function reduceData (acc, newData) {
-  // https://lodash.com/docs/4.17.4#mergeWith
-  // process.stdout.write('<3', acc, newData)
-  // return mergeWith(acc, newData, (accVal, newVal) => {
-  //   if (typeof accVal === 'number') {
-  //     return accVal + newVal
-  //   }
-  // })
-  // console.log('AC', acc)
-  // console.log('new', newData)
-  if (!isEmpty(newData)) {
-    // console.log(merge(acc, newData))
-    return merge(acc, newData)
-  }
-  return acc
-}
-
-function mapToData (msg) {
-  // TODO - handle private message
-  // TODO - check mentions are valid user keys
-
-  const { author, content } = msg.value
-  const key = msg.key
-  const type = get(msg, 'value.content.type' ,[]) //map
-  if (type === 'community-applications-poc') {
-    const application = get(msg, 'value.content.application')
-    // console.log('application', application)
-    const { name, repository, category, hash, slug } = application
-    if (checkType('string', [ name, repository, hash, slug ]) && Array.isArray(category)) {
-      return {
-        [key]: {
-          slug,
-          name,
-          author,
-          key,
-          category,
-          repository,
-          hash
+    for (var contentKey in msg.value.content) {
+      if (contentKey !== 'application' && contentKey !== 'type') {
+        values[contentKey] = {
+          [name]: [msg.value.content[contentKey], msg.value.timestamp]
         }
       }
-    } else {
-      console.log(checkType('string', [ name, repository, hash ]))
-      console.log(Array.isArray(category))
-      console.error('Wrong type')
+      if (contentKey === 'application') {
+        // for (var appKey in msg.value.content.application) {
+        //   values[appKey] = msg.value.content.application[appKey]
+        //   values.author = author
+        //   values.timestamp = timestamp
+        // }
+        return msg
+      }
     }
-  }
-  return {}
-}
 
-function initialState () {
-  return {}
+
+    // console.log('Got', values)
+
+    return null
+  }
 }
